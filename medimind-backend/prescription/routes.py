@@ -1,5 +1,4 @@
 import os
-import httpx
 import easyocr
 import json
 from datetime import datetime
@@ -9,13 +8,20 @@ from fastapi.responses import JSONResponse
 from bson import ObjectId
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from openai import OpenAI
 
 from db.mongo import sync_prescriptions, sync_schedules, sync_users
 
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-flash-1.5")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b")
+
+# Initialize OpenAI client with OpenRouter
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=OPENROUTER_API_KEY,
+)
 
 router = APIRouter()
 
@@ -48,8 +54,8 @@ def extract_text_from_image(image_path: str) -> str:
     text = " ".join(results)
     return text
 
-async def call_openrouter_llm(text: str):
-    """Call OpenRouter API for structured extraction"""
+def call_openrouter_llm(text: str):
+    """Call OpenRouter API for structured extraction using OpenAI client"""
     prompt = f"""
     You are a medical prescription parser.
     Extract structured data from the prescription text below.
@@ -76,36 +82,20 @@ async def call_openrouter_llm(text: str):
     ]
     """
 
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:8000",
-        "X-Title": "MediMind Prescription Parser",
-    }
-
-    payload = {
-        "model": OPENROUTER_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 1000,
-        "temperature": 0.1,
-    }
-
     try:
-        async with httpx.AsyncClient(timeout=60) as http_client:
-            response = await http_client.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers=headers,
-                json=payload,
-            )
-            
-            if response.status_code != 200:
-                error_text = response.text
-                print(f"OpenRouter Error: {error_text}")
-                raise HTTPException(status_code=response.status_code, detail=error_text)
-            
-            data = response.json()
-            reply = data["choices"][0]["message"]["content"]
-            return reply
+        response = client.chat.completions.create(
+            model=OPENROUTER_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1000,
+            temperature=0.1,
+            extra_headers={
+                "HTTP-Referer": "http://localhost:8000",
+                "X-Title": "MediMind Prescription Parser",
+            }
+        )
+        
+        reply = response.choices[0].message.content
+        return reply
             
     except Exception as e:
         print(f"LLM Error: {e}")
@@ -134,7 +124,7 @@ async def upload_prescription(file: UploadFile = File(...), user_id: str = Form(
 
         # LLM Extraction
         print("Calling LLM for structured extraction...")
-        structured_json = await call_openrouter_llm(text)
+        structured_json = call_openrouter_llm(text)
         print(f"LLM response: {structured_json}")
 
         # Save prescription

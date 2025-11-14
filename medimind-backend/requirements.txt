@@ -9,5 +9,6 @@ pydantic
 pydantic-settings
 pymongo
 easyocr
-httpx
+openai
 python-dotenv
+apscheduler

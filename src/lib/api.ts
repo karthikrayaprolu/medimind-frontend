@@ -20,6 +20,26 @@ interface AuthResponse {
   error?: string;
 }
 
+interface Schedule {
+  _id: string;
+  user_id: string;
+  prescription_id: string;
+  medicine_name: string;
+  dosage: string;
+  frequency: string;
+  timings: string[];
+  enabled: boolean;
+  created_at: string;
+}
+
+interface Prescription {
+  _id: string;
+  user_id: string;
+  raw_text: string;
+  structured_data: string;
+  created_at: string;
+}
+
 export const authApi = {
   async login(data: LoginRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -80,5 +100,91 @@ export const authApi = {
     }
 
     return response.json();
+  },
+};
+
+export const prescriptionApi = {
+  async uploadPrescription(file: File, userId: string): Promise<{
+    success: boolean;
+    prescription_id: string;
+    schedule_ids: string[];
+    medicines: any[];
+    message: string;
+  }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("user_id", userId);
+
+    const response = await fetch(`${API_BASE_URL}/api/upload-prescription`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || result.detail || "Upload failed");
+    }
+
+    return result;
+  },
+
+  async getUserSchedules(userId: string): Promise<Schedule[]> {
+    const response = await fetch(`${API_BASE_URL}/api/user/${userId}/schedules`, {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch schedules");
+    }
+
+    return response.json();
+  },
+
+  async getUserPrescriptions(userId: string): Promise<Prescription[]> {
+    const response = await fetch(`${API_BASE_URL}/api/user/${userId}/prescriptions`, {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch prescriptions");
+    }
+
+    return response.json();
+  },
+
+  async toggleSchedule(scheduleId: string, enabled: boolean): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${API_BASE_URL}/api/toggle-schedule`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ schedule_id: scheduleId, enabled }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || result.detail || "Toggle failed");
+    }
+
+    return result;
+  },
+
+  async deleteSchedule(scheduleId: string): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${API_BASE_URL}/api/schedule/${scheduleId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || result.detail || "Delete failed");
+    }
+
+    return result;
   },
 };

@@ -1,13 +1,32 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from auth.routes import router as auth_router
 from prescription.routes import router as prescription_router
+from scheduler.reminder_scheduler import start_scheduler, stop_scheduler, get_scheduler_status
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-app = FastAPI(title="MediMind Backend API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle startup and shutdown events"""
+    # Startup
+    print("[APP] Starting MediMind Backend API...")
+    start_scheduler()
+    yield
+    # Shutdown
+    print("[APP] Shutting down...")
+    stop_scheduler()
+
+
+app = FastAPI(
+    title="MediMind Backend API",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 # CORS Configuration
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
@@ -48,7 +67,10 @@ async def health():
     except Exception as e:
         db_status = f"error: {str(e)}"
     
+    scheduler_status = get_scheduler_status()
+    
     return {
         "status": "healthy",
-        "database": db_status
+        "database": db_status,
+        "scheduler": scheduler_status
     }
