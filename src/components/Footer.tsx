@@ -1,4 +1,4 @@
-import { Linkedin, Twitter, Instagram } from "lucide-react";
+import { Linkedin, Twitter, Instagram, Pill } from "lucide-react";
 
 const Footer = () => {
   const scrollToSection = (id: string) => {
@@ -33,7 +33,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">+</span>
+                <Pill className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold text-foreground">MediMind</span>
             </div>

@@ -16,7 +16,7 @@ def test_single_email():
     print("Testing single email reminder...")
     
     # Replace with actual test email
-    test_email = "jamikishore120303@gmail.com"  # ← Change this to your email
+    test_email = "karthikrayaprolu13@gmail.com"  # ← Change this to your email
     
     result = send_medication_reminder(
         to_email=test_email,

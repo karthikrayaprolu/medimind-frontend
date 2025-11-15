@@ -339,7 +339,8 @@ const Dashboard = () => {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleToggleSchedule(schedule._id, schedule.enabled)}
-                              className="h-8 w-8 p-0"
+                              className="h-8 w-8 p-0 hover:bg-green-500/10"
+                              title={schedule.enabled ? "Disable schedule" : "Enable schedule"}
                             >
                               {schedule.enabled ? (
                                 <Power className="h-4 w-4 text-green-600" />
@@ -351,9 +352,10 @@ const Dashboard = () => {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleDeleteSchedule(schedule._id)}
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              className="h-8 w-8 p-0 hover:bg-destructive/10"
+                              title="Delete schedule"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
                         </div>
@@ -385,7 +387,7 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="p-6">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {workflowSteps.map((step, index) => {
                   const Icon = step.icon;
                   return (
@@ -394,15 +396,15 @@ const Dashboard = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
-                      className="group relative overflow-hidden rounded-xl border border-border/60 bg-gradient-to-br from-background to-muted/20 p-4 transition-all hover:border-primary/30 hover:shadow-md"
+                      className="group relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-gradient-to-br from-background to-muted/20 p-4 transition-all hover:border-primary/30 hover:shadow-md"
                     >
                       <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
-                      <div className="relative">
+                      <div className="relative flex flex-col h-full">
                         <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 transition-transform group-hover:scale-110">
                           <Icon className="h-5 w-5 text-primary" />
                         </div>
                         <h3 className="mb-2 text-sm font-semibold text-foreground">{step.title}</h3>
-                        <p className="text-xs leading-relaxed text-muted-foreground">{step.description}</p>
+                        <p className="text-xs leading-relaxed text-muted-foreground flex-grow">{step.description}</p>
                       </div>
                     </motion.div>
                   );
