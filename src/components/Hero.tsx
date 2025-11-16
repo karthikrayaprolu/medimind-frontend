@@ -1,13 +1,10 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import heroMockup from "@/assets/hero-mockup.png";
+import { useNavigate } from "react-router-dom";
 
-interface HeroProps {
-  onWaitlistClick: () => void;
-}
-
-const Hero = ({ onWaitlistClick }: HeroProps) => {
+const Hero = () => {
+  const navigate = useNavigate();
   const scrollToFeatures = () => {
     const element = document.getElementById("features");
     if (element) {
@@ -99,10 +96,10 @@ const Hero = ({ onWaitlistClick }: HeroProps) => {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={onWaitlistClick}
+                onClick={() => navigate("/auth")}
                 className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               >
-                Join Waitlist
+                Get Started
               </Button>
             </motion.div>
 
@@ -131,23 +128,28 @@ const Hero = ({ onWaitlistClick }: HeroProps) => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="relative hidden lg:block"
           >
-            <div className="relative">
+            <div className="relative overflow-hidden rounded-3xl">
               {/* Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl blur-3xl" />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl" />
               
-              {/* Phone Mockup */}
+              {/* Spline 3D Animation */}
               <motion.div
                 animate={{
                   y: [0, -10, 0],
                 }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="relative z-10"
+                className="relative z-10 h-[380px] lg:h-[420px] xl:h-[480px]"
               >
-                <img
-                  src={heroMockup}
-                  alt="MediMind Dashboard"
-                  className="w-full h-auto rounded-2xl shadow-2xl"
-                />
+                <spline-viewer 
+                  url="https://prod.spline.design/1ViDOc3DApNMgMPI/scene.splinecode"
+                  class="w-full h-full"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%',
+                    display: 'block',
+                    borderRadius: '1.5rem'
+                  }}
+                ></spline-viewer>
               </motion.div>
             </div>
           </motion.div>

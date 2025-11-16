@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { prescriptionApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -192,6 +193,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}

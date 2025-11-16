@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,6 +63,7 @@ const Navigation = () => {
                 {item.label}
               </button>
             ))}
+            <ThemeToggle />
             <Button size="sm" onClick={() => navigate(isAuthenticated ? "/dashboard" : "/auth")}>
               {isAuthenticated ? "Go to workspace" : "Access portal"}
             </Button>
@@ -97,15 +99,19 @@ const Navigation = () => {
                   {item.label}
                 </button>
               ))}
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsOpen(false);
-                  navigate(isAuthenticated ? "/dashboard" : "/auth");
-                }}
-              >
-                {isAuthenticated ? "Go to workspace" : "Access portal"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate(isAuthenticated ? "/dashboard" : "/auth");
+                  }}
+                >
+                  {isAuthenticated ? "Go to workspace" : "Access portal"}
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}

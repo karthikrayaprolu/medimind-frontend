@@ -83,12 +83,16 @@ All colors MUST be HSL.
     --accent: 173 58% 39%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 63% 31%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 20% 17%;
-    --input: 215 20% 17%;
+    --border: 215 20% 20%;
+    --input: 215 20% 18%;
     --ring: 217 91% 60%;
+    
+    /* Dark mode shadows */
+    --shadow-soft: 0 4px 24px -4px hsl(0 0% 0% / 0.3);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.2);
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -107,6 +111,26 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+  
+  /* Smooth transitions for dark mode */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Preserve transitions for animations */
+  *[class*="animate-"],
+  *[class*="transition-"] {
+    transition: var(--transition-base);
+  }
+  
+  /* Hide Spline watermark */
+  spline-viewer::part(logo) {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
   }
 }
