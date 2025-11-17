@@ -9,31 +9,26 @@ from fastapi.responses import JSONResponse
 from bson import ObjectId
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from google import genai
+from openai import OpenAI
 
 from db.mongo import sync_prescriptions, sync_schedules, sync_users
 
 load_dotenv()
 
-# Set Gemini API key from environment
-os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash-latest")
+# Set OpenRouter API key and model from environment
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "tngtech/deepseek-r1t2-chimera:free")
 
-# Fallback models (correct names for google-genai SDK)
-FALLBACK_MODELS = [
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro-latest",
-    "gemini-pro",
-]
-
-# Initialize Google Gemini client
+# Initialize OpenAI client for OpenRouter
 try:
-    client = genai.Client()
-    print("[INIT] Google Gemini API initialized")
-    print(f"[INIT] Primary model: {GEMINI_MODEL}")
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=OPENROUTER_API_KEY,
+    )
+    print("[INIT] OpenRouter API initialized")
+    print(f"[INIT] Model: {OPENROUTER_MODEL}")
 except Exception as e:
-    print(f"[INIT] Failed to initialize Gemini client: {e}")
+    print(f"[INIT] Failed to initialize OpenRouter client: {e}")
     client = None
 
 router = APIRouter()
@@ -67,26 +62,27 @@ def extract_text_from_image(image_path: str) -> str:
     text = " ".join(results)
     return text
 
-def call_gemini_llm(text: str, retry_count: int = 0):
-    """Call Google Gemini API for structured extraction with fallback models"""
+
+# === OPENROUTER LLM PRESCRIPTION PARSER ===
+def call_openrouter_llm(text: str):
     prompt = f"""
     You are an expert medical prescription parser.
     Extract structured data from the prescription text below.
     
     Required fields:
     - medicine_name: The medication name
-    - dosage: Amount per dose (e.g., "500mg", "1 tablet")
-    - quantity: Total prescribed (e.g., "10 tablets", "1 bottle")
-    - frequency: How often (e.g., "twice a day", "thrice a day")
-    - timings: MUST be an array with ONLY these values: "morning", "afternoon", "evening", "night"
+    - dosage: Amount per dose (e.g., '500mg', '1 tablet')
+    - quantity: Total prescribed (e.g., '10 tablets', '1 bottle')
+    - frequency: How often (e.g., 'twice a day', 'thrice a day')
+    - timings: MUST be an array with ONLY these values: 'morning', 'afternoon', 'evening', 'night'
 
     CRITICAL RULES:
-    1. If any field is missing or unclear, use the string "N/A" (not null)
-    2. For timings, ONLY use: "morning", "afternoon", "evening", "night"
-    3. If timing is unclear (like "before food", "after food"), try to infer reasonable times
-    4. "thrice a day" usually means ["morning", "afternoon", "evening"]
-    5. "twice a day" usually means ["morning", "evening"]
-    6. If you cannot determine timing, use ["morning"]
+    1. If any field is missing or unclear, use the string 'N/A' (not null)
+    2. For timings, ONLY use: 'morning', 'afternoon', 'evening', 'night'
+    3. If timing is unclear (like 'before food', 'after food'), try to infer reasonable times
+    4. 'thrice a day' usually means ['morning', 'afternoon', 'evening']
+    5. 'twice a day' usually means ['morning', 'evening']
+    6. If you cannot determine timing, use ['morning']
     7. Return ONLY valid JSON, no markdown, no code blocks
 
     Prescription text:
@@ -105,51 +101,25 @@ def call_gemini_llm(text: str, retry_count: int = 0):
     """
 
     if not client:
-        raise HTTPException(status_code=500, detail="Gemini API not initialized")
-
-    # Select model based on retry count
-    model_index = min(retry_count, len(FALLBACK_MODELS) - 1)
-    current_model = FALLBACK_MODELS[model_index]
+        raise HTTPException(status_code=500, detail="OpenRouter API not initialized")
 
     try:
-        print(f"[GEMINI] Attempt {retry_count + 1}/{len(FALLBACK_MODELS)} - Model: {current_model}")
-        
-        response = client.models.generate_content(
-            model=current_model,
-            contents=prompt
+        print("[UPLOAD] Calling OpenRouter for structured extraction...")
+        completion = client.chat.completions.create(
+            model=OPENROUTER_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            extra_headers={
+                "HTTP-Referer": "http://localhost:8000",
+                "X-Title": "MediMind Prescription Parser",
+            },
+            extra_body={}
         )
-        
-        reply = response.text
-        print(f"[GEMINI] ✓ Success! Response length: {len(reply)} chars")
+        reply = completion.choices[0].message.content
+        print(f"[UPLOAD] OpenRouter response: {reply[:200]}...")
         return reply
-            
     except Exception as e:
-        error_message = str(e)
-        print(f"[GEMINI] ✗ Error with {current_model}: {error_message[:200]}")
-        print(f"[GEMINI] Error type: {type(e).__name__}")
-        
-        # If not the last model, retry with next model
-        if retry_count < len(FALLBACK_MODELS) - 1:
-            # Parse retry delay from error message (e.g., "retry in 5s")
-            import time
-            match = re.search(r'retry in (\d+)', error_message.lower())
-            if match:
-                suggested_delay = int(match.group(1))
-                wait_time = min(suggested_delay, 10)  # Cap at 10s for UX
-                print(f"[GEMINI] Retrying with different model in {wait_time}s...")
-                time.sleep(wait_time)
-            else:
-                wait_time = 2 ** retry_count  # Exponential backoff: 1s, 2s, 4s
-                print(f"[GEMINI] Retrying with different model in {wait_time}s...")
-                time.sleep(wait_time)
-            
-            return call_gemini_llm(text, retry_count + 1)
-        
-        # All models failed
-        raise HTTPException(
-            status_code=503,
-            detail=f"Gemini API temporarily unavailable. Please try again in a minute. (Tried {len(FALLBACK_MODELS)} models)"
-        )
+        print(f"[OPENROUTER] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"OpenRouter LLM processing failed: {str(e)}")
 
 # ==== ROUTES ====
 
@@ -173,10 +143,14 @@ async def upload_prescription(file: UploadFile = File(...), user_id: str = Form(
         print(f"Extracted text: {text[:200]}...")
 
         # LLM Extraction
-        print("[UPLOAD] Calling Gemini for structured extraction...")
-        structured_json = call_gemini_llm(text)
-        print(f"[UPLOAD] Gemini response: {structured_json[:200]}...")
-        
+        print("[UPLOAD] Calling OpenRouter for structured extraction...")
+        try:
+            structured_json = call_openrouter_llm(text)
+            print(f"[UPLOAD] OpenRouter response: {structured_json[:200]}...")
+        except Exception as e:
+            print(f"[OPENROUTER] LLM extraction failed: {e}")
+            raise HTTPException(status_code=500, detail=f"OpenRouter LLM extraction failed: {e}")
+
         # Clean markdown code blocks if present
         cleaned_json = structured_json.strip()
         if cleaned_json.startswith("```json"):
@@ -199,7 +173,6 @@ async def upload_prescription(file: UploadFile = File(...), user_id: str = Form(
         # Parse and create schedules
         try:
             medicines = json.loads(cleaned_json) if isinstance(cleaned_json, str) else cleaned_json
-            
             # Clean up null values and invalid timings
             valid_timings = ["morning", "afternoon", "evening", "night"]
             for medicine in medicines:
@@ -208,36 +181,29 @@ async def upload_prescription(file: UploadFile = File(...), user_id: str = Form(
                     for key in ["medicine_name", "dosage", "quantity", "frequency"]:
                         if medicine.get(key) is None:
                             medicine[key] = "N/A"
-                    
                     # Filter invalid timings
                     timings = medicine.get("timings", [])
                     if timings and isinstance(timings, list):
                         medicine["timings"] = [t for t in timings if t in valid_timings]
-                        # If no valid timings remain, default to morning
                         if not medicine["timings"]:
                             medicine["timings"] = ["morning"]
-            
             print(f"Cleaned medicines: {medicines}")
         except Exception as e:
-            print(f"JSON parsing error: {e}")
+            print(f"[OPENROUTER] JSON parsing error: {e}")
+            print(f"[OPENROUTER] Raw response: {cleaned_json}")
             medicines = [{"medicine_name": "Unknown", "dosage": "As prescribed", "frequency": "Daily", "timings": ["morning"]}]
-        
+
         schedule_ids = []
         for medicine in medicines:
             if isinstance(medicine, dict):
                 medicine_name = medicine.get("medicine_name", "N/A")
                 timings = medicine.get("timings", [])
-                
-                # Skip if medicine name is N/A, Unknown, or empty
                 if not medicine_name or medicine_name in ["N/A", "Unknown", "Unknown Medicine"]:
                     print(f"[SCHEDULE] Skipping - invalid medicine_name: {medicine_name}")
                     continue
-                
-                # Skip if no valid timings
                 if not timings or timings == []:
                     print(f"[SCHEDULE] Skipping {medicine_name} - no valid timings")
                     continue
-                
                 schedule_doc = {
                     "user_id": user_id,
                     "prescription_id": str(prescription_id),
