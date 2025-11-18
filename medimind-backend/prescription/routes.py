@@ -69,40 +69,81 @@ def extract_text_from_image(image_path: str) -> str:
 
 # === OPENROUTER LLM PRESCRIPTION PARSER ===
 def call_openrouter_llm(text: str):
-    prompt = f"""
-    You are an expert medical prescription parser.
-    Extract structured data from the prescription text below.
-    
-    Required fields:
-    - medicine_name: The medication name
-    - dosage: Amount per dose (e.g., '500mg', '1 tablet')
-    - quantity: Total prescribed (e.g., '10 tablets', '1 bottle')
-    - frequency: How often (e.g., 'twice a day', 'thrice a day')
-    - timings: MUST be an array with ONLY these values: 'morning', 'afternoon', 'evening', 'night'
-
-    CRITICAL RULES:
-    1. If any field is missing or unclear, use the string 'N/A' (not null)
-    2. For timings, ONLY use: 'morning', 'afternoon', 'evening', 'night'
-    3. If timing is unclear (like 'before food', 'after food'), try to infer reasonable times
-    4. 'thrice a day' usually means ['morning', 'afternoon', 'evening']
-    5. 'twice a day' usually means ['morning', 'evening']
-    6. If you cannot determine timing, use ['morning']
-    7. Return ONLY valid JSON, no markdown, no code blocks
-
-    Prescription text:
-    {text}
-
-    Example output:
-    [
-      {{
-        "medicine_name": "Metformin",
-        "dosage": "250mg",
-        "quantity": "N/A",
-        "frequency": "thrice a day",
-        "timings": ["morning", "afternoon", "evening"]
-      }}
-    ]
-    """
+    prompt = (
+        "You are an expert medical prescription parsing engine with 20+ years of experience in\n"
+        "clinical pharmacy, medical terminology, and medication-instruction interpretation.\n\n"
+        "Your task is to extract **structured JSON data** from a prescription text or extracted OCR text.\n\n"
+        "--------------------------------------------\n"
+        "### REQUIRED OUTPUT FORMAT (STRICT)\n"
+        "Return ONLY a JSON array. No markdown, no comments.\n\n"
+        "Each medicine must be formatted as:\n"
+        "{{\n"
+        "  \"medicine_name\": \"...\",\n"
+        "  \"dosage\": \"...\",\n"
+        "  \"quantity\": \"...\",\n"
+        "  \"frequency\": \"...\",\n"
+        "  \"timings\": [\"morning\", \"afternoon\", \"evening\", \"night\"]\n"
+        "}}\n"
+        "--------------------------------------------\n\n"
+        "### FIELD RULES (MANDATORY)\n"
+        "1. If ANY FIELD is missing or unclear → use string \"N/A\".\n"
+        "2. \"timings\" must ALWAYS be an ARRAY containing ONLY:\n"
+        "   [\"morning\", \"afternoon\", \"evening\", \"night\"]\n"
+        "3. If timing cannot be inferred → default to [\"morning\"].\n"
+        "4. DO NOT leave any field null, empty, or undefined.\n\n"
+        "--------------------------------------------\n"
+        "### FREQUENCY INTERPRETATION LOGIC\n"
+        "Use these rules to infer correct frequency:\n\n"
+        "- \"t.i.d.\" or \"tid\" or \"three times a day\" → \"thrice a day\"\n"
+        "- \"b.i.d.\" or \"bid\" or \"two times a day\" → \"twice a day\"\n"
+        "- \"q.i.d.\" or \"qid\" → \"four times a day\"\n"
+        "- \"q.d.\" or \"qd\" → \"once a day\"\n"
+        "- \"a.c.\" (before meals):\n"
+        "    - assume timing = [\"morning\", \"afternoon\", \"evening\"]\n"
+        "- \"p.c.\" (after meals):\n"
+        "    - assume timing = [\"morning\", \"afternoon\", \"evening\"]\n\n"
+        "If unclear:\n"
+        "- thrice a day → [\"morning\", \"afternoon\", \"evening\"]\n"
+        "- twice a day → [\"morning\", \"evening\"]\n"
+        "- once a day → [\"morning\"]\n\n"
+        "--------------------------------------------\n"
+        "### WEB KNOWLEDGE RULE (VERY IMPORTANT)\n"
+        "If the prescription text is missing information such as:\n"
+        "- standard dosage form\n"
+        "- standard quantity\n"
+        "- default adult dosage\n"
+        "- common usage frequency\n"
+        "- common schedule for that medicine\n\n"
+        "You MUST:\n"
+        "1. Use authoritative medical knowledge you already have access to  \n"
+        "   (e.g., widely accepted standard dosing schedules found on the web).\n"
+        "2. Use your web-learned knowledge to fill in any N/A fields wherever possible, especially for medical safety and completeness.\n"
+        "3. Only use 'N/A' if you are absolutely unable to infer the value from any authoritative or web-learned source.\n"
+        "4. BUT NEVER hallucinate details that contradict the prescription.\n"
+        "5. If the drug is unknown or ambiguous → set unclear fields to \"N/A\".\n\n"
+        "Example:\n"
+        "If the prescription says only “Paracetamol” but dose missing →  \n"
+        "search your internal medical knowledge (web-learned data) and infer typical values:\n"
+        "- dosage: \"500mg\" (if commonly standard)\n"
+        "- frequency: \"thrice a day\"\n"
+        "- timings: [\"morning\", \"afternoon\", \"evening\"]\n\n"
+        "If inference cannot be done safely → use \"N/A\".\n\n"
+        "--------------------------------------------\n"
+        "### PARSING RULES FOR PRESCRIPTION FORMAT\n"
+        "You must identify correctly:\n"
+        "- superscription (Rx)\n"
+        "- inscription (medicine list)\n"
+        "- subscription (preparation instructions)\n"
+        "- signa (sig: dosage instructions)\n\n"
+        "Focus ONLY on medication data. Ignore doctor name, date, patient details.\n\n"
+        "--------------------------------------------\n"
+        "### FINAL INSTRUCTIONS\n"
+        "- Output MUST be valid JSON.\n"
+        "- Every medicine must be a separate object.\n"
+        "- Never add explanations or text outside JSON.\n\n"
+        "--------------------------------------------\n\n"
+        f"Prescription text:\n{text}\n"
+    )
 
     if not client:
         raise HTTPException(status_code=500, detail="OpenRouter API not initialized")
