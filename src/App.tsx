@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/use-auth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import SmoothScroll from "@/components/SmoothScroll";
 
 const queryClient = new QueryClient();
 
@@ -29,23 +30,25 @@ const App = () => (
         <Toaster />
         <Sonner />
         <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingRoute />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route
-              path="/dashboard"
-              element={(
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              )}
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+          <BrowserRouter>
+            <SmoothScroll>
+              <Routes>
+                <Route path="/" element={<LandingRoute />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route
+                  path="/dashboard"
+                  element={(
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  )}
+                />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </SmoothScroll>
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>

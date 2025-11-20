@@ -2,15 +2,10 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-
+import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 const Hero = () => {
   const navigate = useNavigate();
-  const scrollToFeatures = () => {
-    const element = document.getElementById("features");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const { scrollToSection } = useSmoothScroll();
 
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-b from-background via-muted/30 to-background pt-20">
@@ -87,7 +82,7 @@ const Hero = () => {
             >
               <Button
                 size="lg"
-                onClick={scrollToFeatures}
+                onClick={() => scrollToSection("features")}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 group"
               >
                 Try Prototype
@@ -131,7 +126,7 @@ const Hero = () => {
             <div className="relative overflow-hidden rounded-3xl">
               {/* Glow Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl" />
-              
+
               {/* Spline 3D Animation */}
               <motion.div
                 animate={{
@@ -140,11 +135,11 @@ const Hero = () => {
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="relative z-10 h-[380px] lg:h-[420px] xl:h-[480px]"
               >
-                <spline-viewer 
+                <spline-viewer
                   url="https://prod.spline.design/1ViDOc3DApNMgMPI/scene.splinecode"
                   class="w-full h-full"
-                  style={{ 
-                    width: '100%', 
+                  style={{
+                    width: '100%',
                     height: '100%',
                     display: 'block',
                     borderRadius: '1.5rem'

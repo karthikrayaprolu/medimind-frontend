@@ -5,12 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { scrollToSection } = useSmoothScroll();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,12 +22,9 @@ const Navigation = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsOpen(false);
-    }
+  const handleNavClick = (id: string) => {
+    scrollToSection(id);
+    setIsOpen(false);
   };
 
   const menuItems = [
@@ -38,14 +37,13 @@ const Navigation = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-background/80 backdrop-blur-lg shadow-sm" : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-background/80 backdrop-blur-lg shadow-sm" : "bg-transparent"
+        }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection("home")}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavClick("home")}>
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
               <Pill className="h-5 w-5 text-white" />
             </div>
@@ -57,7 +55,7 @@ const Navigation = () => {
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => scrollToSection(item.id)}
+                onClick={() => handleNavClick(item.id)}
                 className="text-muted-foreground hover:text-primary transition-colors duration-200 font-medium"
               >
                 {item.label}
@@ -93,7 +91,7 @@ const Navigation = () => {
               {menuItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => scrollToSection(item.id)}
+                  onClick={() => handleNavClick(item.id)}
                   className="text-left py-2 text-muted-foreground hover:text-primary transition-colors font-medium"
                 >
                   {item.label}
