@@ -135,7 +135,7 @@ const Hero = () => {
               {/* Spline 3D Animation */}
               <motion.div
                 animate={{
-                  y: [0, -10, 0],
+                  y: [0, 0, 0],
                 }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="relative z-10 h-[380px] lg:h-[420px] xl:h-[480px]"
