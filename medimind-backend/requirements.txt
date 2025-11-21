@@ -12,3 +12,5 @@ easyocr
 python-dotenv
 apscheduler
 google-genai
+pydantic[email]
+openai
