@@ -172,7 +172,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background pt-20">
       <input
         ref={fileInputRef}
         type="file"
@@ -181,43 +181,56 @@ const Dashboard = () => {
         onChange={handleFileUpload}
       />
 
-      <header className="border-b border-border/60 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="container mx-auto flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary">
-              <Pill className="h-5 w-5 text-white" />
+      {/* Floating Navigation Header */}
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl">
+        <div className="rounded-full bg-[#2a2d3a]/95 backdrop-blur-xl border border-white/10 shadow-2xl px-8 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo & Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Pill className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-white">MediMind Workspace</h1>
+                <p className="text-xs text-white/50 hidden sm:block">Prescription management powered by AI</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">MediMind Workspace</h1>
-              <p className="text-xs text-muted-foreground">Prescription management powered by AI</p>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-white rounded-full px-4 hidden sm:inline-flex"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <FileUp className="mr-2 h-4 w-4" />
+                    Upload
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10 rounded-full px-4"
+              >
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sign out</span>
+              </Button>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <FileUp className="mr-2 h-4 w-4" />
-                  Upload Prescription
-                </>
-              )}
-            </Button>
-            <Button variant="outline" onClick={handleLogout} className="inline-flex items-center gap-2">
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </Button>
           </div>
         </div>
       </header>
+
 
       <main className="container mx-auto px-4 py-8 space-y-8">
         {/* Stats Overview */}
@@ -242,13 +255,13 @@ const Dashboard = () => {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
                 <Card className="relative overflow-hidden border-border/60 bg-card/95 p-6 shadow-lg">
-                  <div className={cn("absolute right-0 top-0 h-full w-2 bg-gradient-to-b", stat.color)} />
+                  <div className={cn("absolute right-0 top-0 h-full w-2 bg-primary", stat.color)} />
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                       <p className="mt-2 text-3xl font-bold text-foreground">{isLoading ? "—" : stat.value}</p>
                     </div>
-                    <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br", stat.color, "text-white")}>
+                    <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl bg-primary", stat.color, "text-white")}>
                       <Icon className="h-6 w-6" />
                     </div>
                   </div>
@@ -309,7 +322,7 @@ const Dashboard = () => {
                         )}
                       >
                         {schedule.enabled && (
-                          <div className="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-primary to-secondary" />
+                          <div className="absolute right-0 top-0 h-full w-1 bg-primary" />
                         )}
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">

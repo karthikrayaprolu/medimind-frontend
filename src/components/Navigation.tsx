@@ -37,86 +37,110 @@ const Navigation = () => {
   ];
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-background/80 backdrop-blur-lg shadow-sm" : "bg-transparent"
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection("home")}>
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-              <Pill className="h-5 w-5 text-white" />
+    <>
+      {/* Desktop Navigation */}
+      <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl hidden md:block">
+        <div className="rounded-full bg-[#2a2d3a]/95 backdrop-blur-xl border border-white/10 shadow-2xl px-8 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection("home")}>
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Pill className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-white">MediMind</span>
             </div>
-            <span className="text-xl md:text-2xl font-bold text-foreground">MediMind</span>
-          </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-8">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className="text-muted-foreground hover:text-primary transition-colors duration-200 font-medium"
-              >
-                {item.label}
-              </button>
-            ))}
-            <ThemeToggle />
-            <Button size="sm" onClick={() => navigate(isAuthenticated ? "/dashboard" : "/auth")}>
-              {isAuthenticated ? "Go to workspace" : "Access portal"}
-            </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 text-foreground hover:text-primary transition-colors"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-background/95 backdrop-blur-lg border-t border-border"
-          >
-            <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
+            {/* Menu Items */}
+            <div className="flex items-center gap-8">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className="text-left py-2 text-muted-foreground hover:text-primary transition-colors font-medium"
+                  className="text-white/70 hover:text-white transition-colors duration-200 font-medium text-sm"
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="flex items-center gap-2">
-                <ThemeToggle />
+              <div className="h-6 w-px bg-white/10" />
+              <ThemeToggle />
+              <Button
+                size="sm"
+                onClick={() => navigate(isAuthenticated ? "/dashboard" : "/auth")}
+                className="bg-primary hover:bg-primary/90 text-white rounded-full px-6"
+              >
+                {isAuthenticated ? "Workspace" : "Access Portal"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Navigation */}
+      <nav className="fixed top-4 left-4 right-4 z-50 md:hidden">
+        <div className="rounded-full bg-[#2a2d3a]/95 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection("home")}>
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Pill className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-white">MediMind</span>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 text-white hover:text-primary transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="mt-2 rounded-2xl bg-[#2a2d3a]/95 backdrop-blur-xl border border-white/10 shadow-2xl p-6"
+            >
+              <div className="flex flex-col gap-4">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      scrollToSection(item.id);
+                      setIsOpen(false);
+                    }}
+                    className="text-white/70 hover:text-white transition-colors duration-200 font-medium text-left py-2"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+                <div className="h-px bg-white/10 my-2" />
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white/70 text-sm font-medium">Theme</span>
+                  <ThemeToggle />
+                </div>
                 <Button
-                  variant="outline"
-                  className="flex-1"
+                  className="w-full rounded-xl bg-primary hover:bg-primary/90 text-white"
                   onClick={() => {
                     setIsOpen(false);
                     navigate(isAuthenticated ? "/dashboard" : "/auth");
                   }}
                 >
-                  {isAuthenticated ? "Go to workspace" : "Access portal"}
+                  {isAuthenticated ? "Go to Workspace" : "Access Portal"}
                 </Button>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+    </>
   );
 };
 

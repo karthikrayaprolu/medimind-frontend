@@ -51,7 +51,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 bg-primary bg-clip-text text-transparent"
             >
               MediMind
             </motion.h1>

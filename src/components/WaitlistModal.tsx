@@ -83,7 +83,7 @@ const WaitlistModal = ({ isOpen, onClose }: WaitlistModalProps) => {
                 <>
                   {/* Header */}
                   <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full mb-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4">
                       <Mail className="w-8 h-8 text-white" />
                     </div>
                     <h2 className="text-2xl font-bold text-foreground mb-2">Join the Waitlist</h2>

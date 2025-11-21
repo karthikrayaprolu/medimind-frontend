@@ -63,7 +63,7 @@ const AuthPage = () => {
 
     try {
       const { authApi } = await import("@/lib/api");
-      
+
       if (mode === "login") {
         const response = await authApi.login({ email, password });
         login(response.user_id);
@@ -80,7 +80,7 @@ const AuthPage = () => {
           description: "Your account has been created successfully.",
         });
       }
-      
+
       navigate(redirectTarget, { replace: true });
     } catch (error) {
       toast({
@@ -96,7 +96,7 @@ const AuthPage = () => {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       <div className="absolute inset-x-0 top-6 flex justify-center">
-                <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={() => navigate("/")}> 
+        <Button variant="ghost" className="" onClick={() => navigate("/")}>
 
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to site
@@ -220,7 +220,7 @@ const AuthPage = () => {
               </div>
 
               {mode === "login" && (
-                <div className="relative hidden h-full flex-col gap-12 bg-gradient-to-br from-primary via-secondary to-primary/80 p-8 text-primary-foreground md:flex">
+                <div className="relative hidden h-full flex-col gap-12 bg-primary p-8 text-primary-foreground md:flex">
                   <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}

@@ -32,7 +32,7 @@ const FeatureCard = ({ feature, index }: { feature: typeof features[0]; index: n
   return (
     <ScrollReveal animation="fade-up" delay={index * 0.1} className="h-full">
       <Card className="p-6 h-full bg-card hover:shadow-lg transition-all duration-300 border border-border group hover:border-primary/50">
-        <div className="mb-4 w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+        <div className="mb-4 w-12 h-12 bg-primary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
           <Icon className="w-6 h-6 text-white" />
         </div>
         <h3 className="text-xl font-bold text-foreground mb-3">{feature.title}</h3>
